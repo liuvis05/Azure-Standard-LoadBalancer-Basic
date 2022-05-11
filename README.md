@@ -130,6 +130,28 @@ resource "azurerm_bastion_host" "bastion_host" {
   }
 }
 */
+
+  Step-01: c9-04-web-loadbalancer-inbound-nat-rules.tf
+
+# Azure LB Inbound NAT Rule
+resource "azurerm_lb_nat_rule" "web_lb_inbound_nat_rule_22" {
+  name                           = "ssh-1022-vm-22"
+  protocol                       = "Tcp"
+  frontend_port                  = 1022
+  backend_port                   = 22
+  frontend_ip_configuration_name = azurerm_lb.web_lb.frontend_ip_configuration[0].name  
+  resource_group_name            = azurerm_resource_group.rg.name
+  loadbalancer_id                = azurerm_lb.web_lb.id
+}
+
+# Associate LB NAT Rule and VM Network Interface
+resource "azurerm_network_interface_nat_rule_association" "web_nic_nat_rule_associate" {
+  network_interface_id  = azurerm_network_interface.web_linuxvm_nic.id
+  ip_configuration_name = azurerm_network_interface.web_linuxvm_nic.ip_configuration[0].name 
+  nat_rule_id           = azurerm_lb_nat_rule.web_lb_inbound_nat_rule_22.id
+}
+
+
 Step-05: Execute Terraform Commands
 
 # Terraform Initialize
@@ -225,3 +247,4 @@ azurerm_public_ip.bastion_host_publicip: Destruction complete after 12s
 ╷
 │ Error: Error waiting for removal of Backend Address Pool Association for NIC "hr-dev-linuxvm-nic" (Resource Group "hr-dev-rg"): Code="OperationNotAllowed" Message="Operation 'startTenantUpdate' is not allowed on VM 'hr-dev-linuxvm1' since the VM is marked for deletion. You can only retry the Delete operation (or wait for an ongoing one to complete)." Details=[]
 │
+
